@@ -12,7 +12,14 @@
     "noEmit": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
-    "noImplicitReturns": true
+    "noImplicitReturns": true,
+    "importHelpers": true,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": [
+        "src/*"
+      ],
+    }
   },
-  "include": ["src"]
+  "include": ["src", "tests/**/*.ts"]
 }
