@@ -13,7 +13,9 @@ type UserData = {
 };
 
 class User extends BaseModel<UserData> {
-  relations(): ModelRelations {
+  public book!: Book | null;
+
+  eagerRelations(): ModelRelations<User> {
     return {
       book: this.hasOne(Book),
     };

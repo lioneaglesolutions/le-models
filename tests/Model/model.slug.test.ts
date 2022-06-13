@@ -51,7 +51,9 @@ describe("model slug", () => {
   });
 
   it("can get the resource slug", () => {
-    const user = new (class User extends BaseModel {})({ uuid: "12345" });
+    class User extends BaseModel {}
+
+    const user = new User({ uuid: "12345" });
 
     expect(user.resourceSlug()).toBe("users/12345");
   });
