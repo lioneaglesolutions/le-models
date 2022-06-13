@@ -1,9 +1,16 @@
-import { BaseModel } from "../../src/BaseModel";
+import { BaseModel, ModelRelations } from "@/BaseModel/baseModel";
+import { Book } from "./Book";
 
 type UserData = {
-  id: number;
+  uuid: string;
 };
 
 export class User extends BaseModel<UserData> {
-  readonly primaryKeyName: string = "id";
+  book!: Book | null;
+
+  eagerRelations(): ModelRelations {
+    return {
+      book: this.hasOne(Book),
+    };
+  }
 }

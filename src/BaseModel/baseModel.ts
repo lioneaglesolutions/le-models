@@ -15,12 +15,18 @@ export interface MetaBaseModel<M extends BaseModel, D> {
   builder<M extends BaseModel, Data = NonNullable<M["data"]>>(this: MetaBaseModel<M, Data>): Builder<M, D>;
 }
 
+export type ModelRelations<M extends BaseModel = BaseModel> = {
+  [K in keyof Partial<M>]: M[K];
+};
+
 export class BaseModel<ModelData extends BaseModelDataId | BaseModelDataUuid = BaseModelDataUuid> {
   constructor(public data: ModelData = {} as ModelData) {}
 
   readonly primaryKeyName: string = "uuid";
 
   readonly slug?: string;
+
+  readonly relations?: ModelRelations;
 
   get primaryKey(): string | number {
     return this.data[this.primaryKeyName] as string | number;
@@ -40,5 +46,9 @@ export class BaseModel<ModelData extends BaseModelDataId | BaseModelDataUuid = B
 
   resourceSlug(): string {
     return this.getPluralSlug() + "/" + this.primaryKey;
+  }
+
+  hasOne() {
+    //
   }
 }
