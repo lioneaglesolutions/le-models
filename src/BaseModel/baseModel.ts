@@ -15,8 +15,12 @@ export interface MetaBaseModel<M extends BaseModel, D> {
   builder<M extends BaseModel, Data = NonNullable<M["data"]>>(this: MetaBaseModel<M, Data>): Builder<M, D>;
 }
 
-export type ModelRelations<M extends BaseModel> = {
-  [K in keyof Partial<M>]: M[K];
+export type ModelRelations<T> = {
+  [K in keyof T]: T[K];
+};
+
+export type EagerRelations = {
+  [K: string]: unknown;
 };
 
 export type NonnullableHasOneConfig<D> = {
@@ -51,7 +55,9 @@ export class BaseModel<ModelData extends BaseModelDataId | BaseModelDataUuid = B
 
   readonly slug?: string;
 
-  readonly relations?: ModelRelations<BaseModel>;
+  readonly relations: ModelRelations<ReturnType<this["eagerRelations"]>> = {} as ModelRelations<
+    ReturnType<this["eagerRelations"]>
+  >;
 
   get primaryKey(): string | number {
     return this.data[this.primaryKeyName] as string | number;
@@ -73,8 +79,29 @@ export class BaseModel<ModelData extends BaseModelDataId | BaseModelDataUuid = B
     return this.getPluralSlug() + "/" + this.primaryKey;
   }
 
+  eagerRelations() {
+    return {};
+  }
+
   getRelationKey(): string {
     return camel(this.getSlug());
+  }
+
+  setRelations(): void {
+    for (const [key, value] of Object.entries(this.eagerRelations())) {
+      Object.defineProperty(this.relations, key, {
+        get() {
+          return this.relations[key];
+        },
+        set(value) {
+          this.relations[key] = value;
+        },
+      });
+
+      Object.assign(this.relations, {
+        [key]: value,
+      });
+    }
   }
 
   hasOne<C extends HasOneConfig<ModelData>, M extends BaseModel, D = M["data"]>(

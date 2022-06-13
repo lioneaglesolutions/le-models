@@ -1,4 +1,4 @@
-import { BaseModel, ModelRelations } from "@/BaseModel/baseModel";
+import { BaseModel } from "@/BaseModel/baseModel";
 
 type BookData = {
   uuid: string;
@@ -13,11 +13,9 @@ type UserData = {
 };
 
 class User extends BaseModel<UserData> {
-  public book!: Book | null;
-
-  eagerRelations(): ModelRelations<User> {
+  eagerRelations() {
     return {
-      book: this.hasOne(Book),
+      book: this.hasOne(Book, { nullable: false }),
     };
   }
 }
@@ -32,6 +30,6 @@ describe("model relations", () => {
       },
     });
 
-    expect(user.getSlug()).toBe("user");
+    expect(user.relations.book.primaryKey).toBe("222");
   });
 });
