@@ -15,7 +15,7 @@ describe("model slug", () => {
 
   it("can override the slug", () => {
     const user = new (class User extends BaseModel {
-      slug = "override";
+      slugOverride = "override";
     })();
 
     expect(user.getSlug()).toBe("override");

@@ -1,19 +1,13 @@
-import { BaseModel, ModelRelations } from "@/BaseModel/baseModel";
+import { BaseModel, EagerRelations } from "@/BaseModel/baseModel";
+import { Book, BookData } from "./Book";
 
-type BookData = {
-  uuid: string;
-  name: string;
-};
-
-class Book extends BaseModel<BookData> {}
-
-type UserData = {
+export type UserData = {
   uuid: string;
   book: BookData;
 };
 
 export class User extends BaseModel<UserData> {
-  eagerRelations() {
+  eagerRelations(): EagerRelations<User> {
     return {
       book: this.hasOne(Book),
     };

@@ -2,11 +2,9 @@ import { Builder } from "@/Builder";
 import { kebab, camel } from "@/utils/string";
 import pluralize from "pluralize";
 
-export type BaseModelDataId<PK extends string = "id"> = Record<PK, number> & {
-  [key: string]: unknown;
-};
+export type Relation<T> = T;
 
-export type BaseModelDataUuid<PK extends string = "uuid"> = Record<PK, string> & {
+export type BaseModelData = {
   [key: string]: unknown;
 };
 
@@ -15,12 +13,12 @@ export interface MetaBaseModel<M extends BaseModel, D> {
   builder<M extends BaseModel, Data = NonNullable<M["data"]>>(this: MetaBaseModel<M, Data>): Builder<M, D>;
 }
 
-export type ModelRelations<T> = {
-  [K in keyof T]: T[K];
+export type ModelRelations<T extends BaseModel> = {
+  [K in keyof ReturnType<T["eagerRelations"]>]: ReturnType<T["eagerRelations"]>[K];
 };
 
-export type EagerRelations = {
-  [K: string]: unknown;
+export type EagerRelations<T extends BaseModel> = {
+  [K in keyof T["eagerRelations"]]: T["eagerRelations"][K];
 };
 
 export type NonnullableHasOneConfig<D> = {
@@ -48,16 +46,16 @@ export type HasOneReturn<Config, Data, Model> = Config extends NonnullableHasOne
   ? Model | null
   : never;
 
-export class BaseModel<ModelData extends BaseModelDataId | BaseModelDataUuid = BaseModelDataUuid> {
-  constructor(public data: ModelData = {} as ModelData) {}
+export class BaseModel<ModelData extends BaseModelData = BaseModelData> {
+  constructor(public data: ModelData = {} as ModelData) {
+    this.setRelations();
+  }
 
   readonly primaryKeyName: string = "uuid";
 
-  readonly slug?: string;
+  readonly slugOverride?: string;
 
-  readonly relations: ModelRelations<ReturnType<this["eagerRelations"]>> = {} as ModelRelations<
-    ReturnType<this["eagerRelations"]>
-  >;
+  readonly relations: ModelRelations<this> = {} as ModelRelations<this>;
 
   get primaryKey(): string | number {
     return this.data[this.primaryKeyName] as string | number;
@@ -68,7 +66,7 @@ export class BaseModel<ModelData extends BaseModelDataId | BaseModelDataUuid = B
   }
 
   getSlug(): string {
-    return this.slug ?? kebab(this.constructor.name).toLowerCase();
+    return this.slugOverride ?? kebab(this.constructor.name).toLowerCase();
   }
 
   getPluralSlug(): string {
@@ -89,15 +87,6 @@ export class BaseModel<ModelData extends BaseModelDataId | BaseModelDataUuid = B
 
   setRelations(): void {
     for (const [key, value] of Object.entries(this.eagerRelations())) {
-      Object.defineProperty(this.relations, key, {
-        get() {
-          return this.relations[key];
-        },
-        set(value) {
-          this.relations[key] = value;
-        },
-      });
-
       Object.assign(this.relations, {
         [key]: value,
       });
@@ -119,7 +108,6 @@ export class BaseModel<ModelData extends BaseModelDataId | BaseModelDataUuid = B
 
     const relation = new type(data);
 
-    // relation.setParent(this);
     return relation as HasOneReturn<C, ModelData, M>;
   }
 }
